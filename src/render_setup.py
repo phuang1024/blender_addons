@@ -147,6 +147,51 @@ class RSETUP_OT_NewConfirm(bpy.types.Operator):
         return {"FINISHED"}
 
 
+class RSETUP_OT_Rm(bpy.types.Operator):
+    """Remove a setup."""
+    bl_idname = "rsetup.rm"
+    bl_label = "Remove Setup"
+    bl_description = "Remove a setup."
+
+    def execute(self, context):
+        bpy.ops.rsetup.rm_confirm("INVOKE_DEFAULT")
+        return {"FINISHED"}
+
+
+class RSETUP_OT_RmConfirm(bpy.types.Operator):
+    """Pop-up for setup name."""
+    bl_idname = "rsetup.rm_confirm"
+    bl_label = "Remove render setup?"
+    bl_description = "Pop-up for setup name."
+
+    name: EnumProperty(
+        name="Setup Name",
+        description="Name of setup to remove",
+        items=get_setups
+    )
+
+    def draw(self, context):
+        layout = self.layout
+        layout.label(text="The setup will be permanently deleted.")
+        layout.prop(self, "name")
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+    def execute(self, context):
+        data = load()
+        name = self.name
+
+        if name in data:
+            data.pop(name, None)
+            dump(data)
+            self.report({"INFO"}, "Setup \"{}\" successfully deleted.".format(name))
+        else:
+            self.report({"ERROR"}, "Name not found.")
+
+        return {"FINISHED"}
+
+
 class RSETUP_PT_Main(bpy.types.Panel):
     bl_idname = "RSETUP_PT_Main"
     bl_label = "Render Setup"
@@ -159,7 +204,10 @@ class RSETUP_PT_Main(bpy.types.Panel):
         props = context.scene.rsetup
 
         layout.prop(props, "setup")
-        layout.operator("rsetup.new")
+
+        col = layout.column(align=True)
+        col.operator("rsetup.new")
+        col.operator("rsetup.rm")
 
 
 classes = (
@@ -167,6 +215,8 @@ classes = (
     RSETUP_PT_Main,
     RSETUP_OT_New,
     RSETUP_OT_NewConfirm,
+    RSETUP_OT_Rm,
+    RSETUP_OT_RmConfirm,
 )
 
 def register():
