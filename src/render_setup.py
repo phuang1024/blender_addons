@@ -30,8 +30,62 @@ bl_info = {
     "warning": "In development",
 }
 
+import os
+import time
+import json
 import bpy
 from bpy.props import PointerProperty
+
+PARENT = os.path.dirname(os.path.realpath(__file__))
+DATA = os.path.join(PARENT, "rsetup.json")
+MUTEX = os.path.join(PARENT, "rsetup.mutex")
+
+
+def mutex_check():
+    """
+    Returns if another process is using the file
+    Read docstring in ``mutex_on`` for info about how the mutex works
+    """
+    if not os.path.isfile(MUTEX):
+        return False
+    with open(MUTEX, "r") as file:
+        data = file.read(100)
+        try:
+            t = float(data)
+            if time.time()-t < 0.1:
+                return True
+        except ValueError:
+            return False
+
+def mutex_on():
+    """
+    The file will contain a stringed ``time.time()``
+    The mutex expires after 0.1 seconds, so if the mutex is not "offed",
+    another process can use the file after 0.1 secs.
+    """
+    with open(MUTEX, "w") as file:
+        file.write(str(time.time()))
+
+def mutex_off():
+    with open(MUTEX, "w") as file:
+        file.write("0")
+
+def load():
+    while mutex_check():
+        time.sleep(0.01)
+    mutex_on()
+    with open(DATA, "r") as file:
+        obj = json.load(file)
+    mutex_off()
+    return obj
+
+def dump(obj):
+    while mutex_check():
+        time.sleep(0.01)
+    mutex_on()
+    with open(DATA, "w") as file:
+        json.dump(obj, file, indent=4)
+    mutex_off()
 
 
 class RSETUP_Props(bpy.types.PropertyGroup):
