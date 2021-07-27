@@ -348,9 +348,6 @@ class RSETUP_PT_Main(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        props = context.scene.rsetup
-
-        layout.prop(props, "setup")
 
         col = layout.column(align=True)
         col.operator("rsetup.new")
