@@ -22,12 +22,12 @@ bl_info = {
     "description": "Load and save render settings.",
     "category": "Render",
     "author": "Patrick Huang <huangpatrick16777216@gmail.com>",
-    "version": (0, 0, 1),
+    "version": (0, 1, 0),
     "blender": (2, 80, 0),
     "location": "3D View > Sidebar > Render Setup",
     "doc_url": "https://github.com/phuang1024/blender_addons",
     "bug_url": "https://github.com/phuang1024/blender_addons/issues",
-    "warning": "In development",
+    "warning": "Untested",
 }
 
 import os
