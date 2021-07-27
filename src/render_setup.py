@@ -40,6 +40,54 @@ PARENT = os.path.dirname(os.path.realpath(__file__))
 DATA = os.path.join(PARENT, "rsetup.json")
 MUTEX = os.path.join(PARENT, "rsetup.mutex")
 
+DATA_PATHS = {
+    "render": [
+        "render.engine",
+        "cycles.device",
+        "cycles.samples",
+        "cycles.preview_samples",
+        "cycles.use_adaptive_sampling",
+        "cycles.adaptive_threshold",
+        "cycles.adaptive_min_samples",
+        "cycles.use_denoising",
+        "cycles.denoiser",
+        "cycles.use_preview_denoising",
+        "cycles.preview_denoiser",
+        "cycles.max_bounces",
+        "cycles.diffuse_bounces",
+        "cycles.glossy_bounces",
+        "cycles.transparent_max_bounces",
+        "cycles.transmission_bounces",
+        "cycles.volume_bounces",
+        "render.use_simplify",
+        "render.simplify_subdivision",
+        "render.simplify_subdivision_render",
+        "render.use_motion_blur",
+        "cycles.motion_blur_position",
+        "render.motion_blur_shutter",
+        "cycles.film_exposure",
+        "render.film_transparent",
+        "render.threads_mode",
+        "render.threads",
+        "render.tile_x",
+        "render.tile_y",
+        "cycles.tile_order",
+        "view_settings.exposure",
+    ],
+    "output": [
+        "render.resolution_x",
+        "render.resolution_y",
+        "render.resolution_percentage",
+        "render.fps",
+        "render.filepath",
+        "render.image_settings.file_format",
+        "render.ffmpeg.format",
+        "render.ffmpeg.codec",
+        "render.ffmpeg.constant_rate_factor",
+        "render.ffmpeg.audio_codec",
+    ]
+}
+
 
 def mutex_check():
     """
