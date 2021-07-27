@@ -92,9 +92,15 @@ DATA_PATHS = {
 def multigetattr(obj, path):
     """Can handle paths with multiple dots."""
     paths = path.split(".")
-    for path in paths:
-        obj = getattr(obj, path)
+    for p in paths:
+        obj = getattr(obj, p)
     return obj
+
+def multisetattr(obj, path, value):
+    paths = path.split(".")
+    for p in paths[:-1]:
+        obj = getattr(obj, p)
+    setattr(obj, paths[-1], value)
 
 
 def mutex_check():
@@ -260,6 +266,51 @@ class RSETUP_OT_RmConfirm(bpy.types.Operator):
         return {"FINISHED"}
 
 
+class RSETUP_OT_Apply(bpy.types.Operator):
+    """Apply selected render setup."""
+    bl_idname = "rsetup.apply"
+    bl_label = "Apply Setup"
+    bl_description = "Apply selected render setup."
+
+    def execute(self, context):
+        bpy.ops.rsetup.apply_confirm("INVOKE_DEFAULT")
+        return {"FINISHED"}
+
+
+class RSETUP_OT_ApplyConfirm(bpy.types.Operator):
+    """Popup asking for setup name."""
+    bl_idname = "rsetup.apply_confirm"
+    bl_label = "Apply setup?"
+    bl_description = "Popup asking for setup name."
+
+    name: EnumProperty(
+        name="Setup Name",
+        description="Name of setup to remove",
+        items=get_setups
+    )
+
+    def draw(self, context):
+        layout = self.layout
+        layout.label(text="The current settings will be overwritten.")
+        layout.prop(self, "name")
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+    def execute(self, context):
+        data = load()
+        name = self.name
+
+        if name in data:
+            for key in data[name]:
+                multisetattr(context.scene, key, data[name][key])
+            self.report({"INFO"}, "Setup \"{}\" successfully applied.".format(name))
+        else:
+            self.report({"ERROR"}, "Name not found.")
+
+        return {"FINISHED"}
+
+
 class RSETUP_PT_Main(bpy.types.Panel):
     bl_idname = "RSETUP_PT_Main"
     bl_label = "Render Setup"
@@ -276,6 +327,7 @@ class RSETUP_PT_Main(bpy.types.Panel):
         col = layout.column(align=True)
         col.operator("rsetup.new")
         col.operator("rsetup.rm")
+        col.operator("rsetup.apply")
 
 
 classes = (
@@ -285,6 +337,8 @@ classes = (
     RSETUP_OT_NewConfirm,
     RSETUP_OT_Rm,
     RSETUP_OT_RmConfirm,
+    RSETUP_OT_Apply,
+    RSETUP_OT_ApplyConfirm,
 )
 
 def register():
