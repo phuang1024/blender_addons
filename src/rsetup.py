@@ -43,6 +43,20 @@ MUTEX = os.path.join(PARENT, "rsetup.mutex")
 DATA_PATHS = {
     "render": [
         "render.engine",
+        "render.use_simplify",
+        "render.simplify_subdivision",
+        "render.simplify_subdivision_render",
+        "render.use_motion_blur",
+        "render.motion_blur_shutter",
+        "render.film_transparent",
+        "render.threads_mode",
+        "render.threads",
+        "render.tile_x",
+        "render.tile_y",
+        "render.use_high_quality_normals",
+        "view_settings.exposure",
+    ],
+    "cycles": [
         "cycles.device",
         "cycles.samples",
         "cycles.preview_samples",
@@ -59,20 +73,26 @@ DATA_PATHS = {
         "cycles.transparent_max_bounces",
         "cycles.transmission_bounces",
         "cycles.volume_bounces",
-        "render.use_simplify",
-        "render.simplify_subdivision",
-        "render.simplify_subdivision_render",
-        "render.use_motion_blur",
         "cycles.motion_blur_position",
-        "render.motion_blur_shutter",
-        "cycles.film_exposure",
-        "render.film_transparent",
-        "render.threads_mode",
-        "render.threads",
-        "render.tile_x",
-        "render.tile_y",
         "cycles.tile_order",
-        "view_settings.exposure",
+    ],
+    "eevee": [
+        "eevee.taa_render_samples",
+        "eevee.taa_samples",
+        "eevee.use_taa_reprojection",
+        "eevee.use_gtao",
+        "eevee.gtao_distance",
+        "eevee.use_bloom",
+        "eevee.bloom_threshold",
+        "eevee.use_ssr",
+        "eevee.use_ssr_refraction",
+        "eevee.use_motion_blur",
+        "eevee.motion_blur_position",
+        "eevee.motion_blur_shutter",
+        "eevee.shadow_cube_size",
+        "eevee.shadow_cascade_size",
+        "eevee.use_shadow_high_bitdepth",
+        "eevee.use_soft_shadows",
     ],
     "output": [
         "render.resolution_x",
@@ -187,6 +207,8 @@ class RSETUP_OT_NewConfirm(bpy.types.Operator):
     )
 
     inc_render: BoolProperty(name="Render", default=True)
+    inc_cycles: BoolProperty(name="Cycles", default=True)
+    inc_eevee: BoolProperty(name="Eevee", default=True)
     inc_output: BoolProperty(name="Output", default=True)
 
     def draw(self, context):
@@ -194,6 +216,8 @@ class RSETUP_OT_NewConfirm(bpy.types.Operator):
         layout.prop(self, "name")
         layout.label(text="Include in setup:")
         layout.prop(self, "inc_render")
+        layout.prop(self, "inc_cycles")
+        layout.prop(self, "inc_eevee")
         layout.prop(self, "inc_output")
 
     def invoke(self, context, event):
@@ -211,6 +235,10 @@ class RSETUP_OT_NewConfirm(bpy.types.Operator):
             paths = []
             if self.inc_render:
                 paths.extend(DATA_PATHS["render"])
+            if self.inc_cycles:
+                paths.extend(DATA_PATHS["cycles"])
+            if self.inc_eevee:
+                paths.extend(DATA_PATHS["eevee"])
             if self.inc_output:
                 paths.extend(DATA_PATHS["output"])
 
