@@ -34,7 +34,7 @@ import os
 import time
 import json
 import bpy
-from bpy.props import PointerProperty
+from bpy.props import EnumProperty, PointerProperty, StringProperty
 
 PARENT = os.path.dirname(os.path.realpath(__file__))
 DATA = os.path.join(PARENT, "rsetup.json")
@@ -88,12 +88,67 @@ def dump(obj):
     mutex_off()
 
 
+def get_setups(scene, context):
+    data = load()
+    setups = [(key, key, key) for key in data]
+    return setups
+
+
 class RSETUP_Props(bpy.types.PropertyGroup):
-    pass
+    setup: EnumProperty(
+        name="Setup",
+        description="Choose the render setup.",
+        items=get_setups
+    )
+
+
+class RSETUP_OT_New(bpy.types.Operator):
+    """Add a new render setup."""
+    bl_idname = "rsetup.new"
+    bl_label = "New Setup"
+    bl_description = "Add a new render setup."
+
+    def execute(self, context):
+        bpy.ops.rsetup.new_confirm("INVOKE_DEFAULT")
+        return {"FINISHED"}
+
+
+class RSETUP_OT_NewConfirm(bpy.types.Operator):
+    """Show pop-up menu asking for name."""
+    bl_idname = "rsetup.new_confirm"
+    bl_label = "Add new setup?"
+    bl_description = "Show pop-up menu asking for name."
+
+    name: StringProperty(
+        name="Setup Name",
+        description="The setup name.",
+    )
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "name")
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+    def execute(self, context):
+        data = load()
+        name = self.name
+
+        if len(name) == 0:
+            self.report({"ERROR"}, "Name cannot be empty.")
+        elif name in data:
+            self.report({"ERROR"}, "Setup name already exists.")
+        else:
+            data[name] = ""
+            dump(data)
+            self.report({"INFO"}, "Setup \"{}\" successfully added.".format(name))
+
+        return {"FINISHED"}
 
 
 class RSETUP_PT_Main(bpy.types.Panel):
-    bl_idname = "RSETUP_UT_Main"
+    bl_idname = "RSETUP_PT_Main"
     bl_label = "Render Setup"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
@@ -101,16 +156,23 @@ class RSETUP_PT_Main(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
+        props = context.scene.rsetup
 
-        layout.label(text="hi")
+        layout.prop(props, "setup")
+        layout.operator("rsetup.new")
 
 
 classes = (
     RSETUP_Props,
     RSETUP_PT_Main,
+    RSETUP_OT_New,
+    RSETUP_OT_NewConfirm,
 )
 
 def register():
+    if not os.path.isfile(DATA):
+        dump({})
+
     for cls in classes:
         bpy.utils.register_class(cls)
     bpy.types.Scene.rsetup = PointerProperty(type=RSETUP_Props)
