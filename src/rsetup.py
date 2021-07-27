@@ -32,9 +32,11 @@ bl_info = {
 
 import os
 import time
+import struct
+import io
 import json
 import bpy
-from bpy.props import BoolProperty, EnumProperty, PointerProperty, StringProperty
+from bpy.props import BoolProperty, EnumProperty, IntProperty, PointerProperty, StringProperty
 
 PARENT = os.path.dirname(os.path.realpath(__file__))
 DATA = os.path.join(PARENT, "rsetup.json")
@@ -194,7 +196,6 @@ class RSETUP_OT_New(bpy.types.Operator):
         bpy.ops.rsetup.new_confirm("INVOKE_DEFAULT")
         return {"FINISHED"}
 
-
 class RSETUP_OT_NewConfirm(bpy.types.Operator):
     """Show pop-up menu asking for name."""
     bl_idname = "rsetup.new_confirm"
@@ -259,7 +260,6 @@ class RSETUP_OT_Rm(bpy.types.Operator):
         bpy.ops.rsetup.rm_confirm("INVOKE_DEFAULT")
         return {"FINISHED"}
 
-
 class RSETUP_OT_RmConfirm(bpy.types.Operator):
     """Pop-up for setup name."""
     bl_idname = "rsetup.rm_confirm"
@@ -304,7 +304,6 @@ class RSETUP_OT_Apply(bpy.types.Operator):
         bpy.ops.rsetup.apply_confirm("INVOKE_DEFAULT")
         return {"FINISHED"}
 
-
 class RSETUP_OT_ApplyConfirm(bpy.types.Operator):
     """Popup asking for setup name."""
     bl_idname = "rsetup.apply_confirm"
@@ -339,6 +338,36 @@ class RSETUP_OT_ApplyConfirm(bpy.types.Operator):
         return {"FINISHED"}
 
 
+class RSETUP_OT_ExportJson(bpy.types.Operator):
+    """Export setups as JSON."""
+    bl_idname = "rsetup.exp_json"
+    bl_label = "Export JSON"
+    bl_description = "Export setups as JSON."
+
+    filepath: StringProperty(
+        name="File Path",
+        description="Output .json file path.",
+        subtype="FILE_PATH",
+    )
+
+    indent: IntProperty(
+        name="Indent",
+        description="File indentation",
+        default=4, min=0, soft_max=10,
+    )
+
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return context.window_manager.invoke_props_dialog(self)
+
+    def execute(self, context):
+        data = load()
+        with open(self.filepath, "w") as file:
+            json.dump(data, file, indent=self.indent)
+
+        return {"FINISHED"}
+
+
 class RSETUP_PT_Main(bpy.types.Panel):
     bl_idname = "RSETUP_PT_Main"
     bl_label = "Render Setup"
@@ -347,23 +376,45 @@ class RSETUP_PT_Main(bpy.types.Panel):
     bl_category = "Render Setup"
 
     def draw(self, context):
+        props = context.scene.rsetup
         layout = self.layout
+
+        layout.prop(props, "setup", text="Setups")
 
         col = layout.column(align=True)
         col.operator("rsetup.new")
         col.operator("rsetup.rm")
         col.operator("rsetup.apply")
 
+class RSETUP_PT_IO(bpy.types.Panel):
+    bl_idname = "RSETUP_PT_IO"
+    bl_label = "Import/Export"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Render Setup"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator_context = "INVOKE_DEFAULT"
+
+        col = layout.column(align=True)
+        col.operator("rsetup.exp_json")
+
 
 classes = (
     RSETUP_Props,
-    RSETUP_PT_Main,
+
     RSETUP_OT_New,
     RSETUP_OT_NewConfirm,
     RSETUP_OT_Rm,
     RSETUP_OT_RmConfirm,
     RSETUP_OT_Apply,
     RSETUP_OT_ApplyConfirm,
+
+    RSETUP_OT_ExportJson,
+
+    RSETUP_PT_Main,
+    RSETUP_PT_IO,
 )
 
 def register():
