@@ -34,7 +34,7 @@ import os
 import time
 import json
 import bpy
-from bpy.props import EnumProperty, PointerProperty, StringProperty
+from bpy.props import BoolProperty, EnumProperty, PointerProperty, StringProperty
 
 PARENT = os.path.dirname(os.path.realpath(__file__))
 DATA = os.path.join(PARENT, "rsetup.json")
@@ -87,6 +87,14 @@ DATA_PATHS = {
         "render.ffmpeg.audio_codec",
     ]
 }
+
+
+def multigetattr(obj, path):
+    """Can handle paths with multiple dots."""
+    paths = path.split(".")
+    for path in paths:
+        obj = getattr(obj, path)
+    return obj
 
 
 def mutex_check():
@@ -172,9 +180,15 @@ class RSETUP_OT_NewConfirm(bpy.types.Operator):
         description="The setup name.",
     )
 
+    inc_render: BoolProperty(name="Render", default=True)
+    inc_output: BoolProperty(name="Output", default=True)
+
     def draw(self, context):
         layout = self.layout
         layout.prop(self, "name")
+        layout.label(text="Include in setup:")
+        layout.prop(self, "inc_render")
+        layout.prop(self, "inc_output")
 
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self)
@@ -188,7 +202,13 @@ class RSETUP_OT_NewConfirm(bpy.types.Operator):
         elif name in data:
             self.report({"ERROR"}, "Setup name already exists.")
         else:
-            data[name] = ""
+            paths = []
+            if self.inc_render:
+                paths.extend(DATA_PATHS["render"])
+            if self.inc_output:
+                paths.extend(DATA_PATHS["output"])
+
+            data[name] = {path: multigetattr(context.scene, path) for path in paths}
             dump(data)
             self.report({"INFO"}, "Setup \"{}\" successfully added.".format(name))
 
