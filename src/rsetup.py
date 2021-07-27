@@ -367,6 +367,34 @@ class RSETUP_OT_ExportJson(bpy.types.Operator):
 
         return {"FINISHED"}
 
+class RSETUP_OT_ImportJson(bpy.types.Operator):
+    """Import JSON setups."""
+    bl_idname = "rsetup.imp_json"
+    bl_label = "Import JSON"
+    bl_description = "Import JSON setups."
+
+    filepath: StringProperty(
+        name="File Path",
+        description="Input .json file path.",
+        subtype="FILE_PATH"
+    )
+
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return context.window_manager.invoke_props_dialog(self)
+
+    def execute(self, context):
+        current_data = load()
+        with open(self.filepath, "r") as file:
+            new_data = json.load(file)
+
+        for key in new_data:
+            if key not in current_data:
+                current_data[key] = new_data[key]
+
+        dump(current_data)
+        return {"FINISHED"}
+
 
 class RSETUP_PT_Main(bpy.types.Panel):
     bl_idname = "RSETUP_PT_Main"
@@ -392,6 +420,7 @@ class RSETUP_PT_IO(bpy.types.Panel):
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Render Setup"
+    bl_options = {"DEFAULT_CLOSED"}
 
     def draw(self, context):
         layout = self.layout
@@ -399,6 +428,7 @@ class RSETUP_PT_IO(bpy.types.Panel):
 
         col = layout.column(align=True)
         col.operator("rsetup.exp_json")
+        col.operator("rsetup.imp_json")
 
 
 classes = (
@@ -412,6 +442,7 @@ classes = (
     RSETUP_OT_ApplyConfirm,
 
     RSETUP_OT_ExportJson,
+    RSETUP_OT_ImportJson,
 
     RSETUP_PT_Main,
     RSETUP_PT_IO,
