@@ -22,7 +22,7 @@ bl_info = {
     "description": "Load and save render settings.",
     "category": "Render",
     "author": "Patrick Huang <huangpatrick16777216@gmail.com>",
-    "version": (0, 1, 0),
+    "version": (0, 1, 1),
     "blender": (2, 80, 0),
     "location": "3D View > Sidebar > Render Setup",
     "doc_url": "https://github.com/phuang1024/blender_addons",
@@ -32,8 +32,6 @@ bl_info = {
 
 import os
 import time
-import struct
-import io
 import json
 import bpy
 from bpy.props import BoolProperty, EnumProperty, IntProperty, PointerProperty, StringProperty

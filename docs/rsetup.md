@@ -30,4 +30,14 @@ Save and load render settings.
 2. Choose the setup name.
 3. The setup settings will overwrite your current settings.
 
+## Changelog
+
+### v0.1.1
+
+Import and Export JSON.
+
+### v0.1.0
+
+First working version
+
 [py]: https://github.com/phuang1024/blender_addons/blob/main/src/rsetup.py
